@@ -294,7 +294,7 @@ Alt_Modifier:
 	Return
 
 
-numpad1::Reload
-numpad2::MsgBox, %Ini_Modifier_Hotkey%`n%Form_Hotkey_1% `n%Form_hotkey_2%`n%Form_Hotkey_3% `n%Form_Hotkey_4% `n%Form_Hotkey_5% `n%Form_Hotkey_6% `n%Form_Hotkey_7% `n%Form_Hotkey_8%
-Numpad3::MsgBox, %Ini_Modifier_Hotkey%
+^Numpad1::Reload
+^Numpad2::MsgBox, %Ini_Modifier_Hotkey%`n%Form_Hotkey_1% `n%Form_hotkey_2%`n%Form_Hotkey_3% `n%Form_Hotkey_4% `n%Form_Hotkey_5% `n%Form_Hotkey_6% `n%Form_Hotkey_7% `n%Form_Hotkey_8%
+^Numpad3::MsgBox, %Ini_Modifier_Hotkey%
 Return
