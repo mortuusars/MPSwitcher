@@ -330,23 +330,6 @@ GuiClose:
 
 
 
-numpad1::
-	{
-		listvars
-		;Listvars
-	}
-Return
-
-Numpad2::
-	{
-		GoSub, Ini_Remove
-		Gui, Submit, Nohide
-		GoSub, Ini_Write
-	}
-Return
-
-
-
 
 
 

@@ -410,9 +410,6 @@ Return
 
 
 
-
-*/
-
 ;Return modifier key to working state
 D_Modifier:
 	{
@@ -438,8 +435,3 @@ Alt_Modifier:
 	}
 	Return
 
-
-^Numpad1::Reload
-^Numpad2::listvars
-^Numpad3::MsgBox, %Ini_Modifier_Hotkey%
-Return
