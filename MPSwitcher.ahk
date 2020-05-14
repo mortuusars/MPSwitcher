@@ -7,169 +7,139 @@ if not A_IsAdmin
 	Run *RunAs "%A_ScriptFullPath%" ; (A_AhkPath is usually optional if the script has the .ahk extension.) You would typically check  first.
 #SingleInstance force ;only one instance may run at a time!
 #MaxHotkeysPerInterval 200
-Menu, Tray, Icon, SwitcherArrows.ico ;Changes tray icon to custom.
+;Menu, Tray, Icon, SwitcherArrows.ico ;Changes tray icon to custom.
+
+/*
+Setting variables 															DONE
+Reading INI for data 														DONE
+	N_Of_Programs 															DONE
+	Ini_Modifier_Hotkey 													DONE
+	Looping for hotkey, exe, path 											DONE
+
+Checking if hotkey is blank and setting F24 if true. 						DONE
+	Modifier 																DONE
+	Looping for program hotkeys 											DONE
+
+Creating hotkeys from variables. 											DONE
+	Modifier 																DONE
+	Program hotkeys 														DONE
+
+Main Hotkey Functions 														DONE
+
+Returning Modifier Hotkey to working state.
+*/
+
+----------------------------------------------------------------------------
+Ini_File := "settings.ini"
+
+
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+-----------------------Reading Ini file for settings------------------------
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+;Reading INI File for data. %A_Space% setting variable to 0 if not present in ini.
+
+;N_Of_Programs
+IniRead, N_Of_Programs, %Ini_File%, General, Number_Of_Programs, 1
+;Modifier_Hotkey
+IniRead, Ini_Modifier_Hotkey, %Ini_File%, General, Modifier_Hotkey, %A_Space%
+
+i := 1
+Loop, %N_Of_Programs%
+	{
+		IniRead, Ini_Hotkey_%i%, %Ini_File%, Program_%i%, Hotkey, %A_Space%
+		IniRead, Ini_Exe_%i%, %Ini_File%, Program_%i%, Exe, %A_Space%
+		IniRead, Ini_Path_%i%, %Ini_File%, Program_%i%, Path, %A_Space%
+		i++
+	}
+
+
+;msgbox %Ini_Modifier_Hotkey%
 
 
 
-;Reading INI File for data.
-IniRead, Ini_Modifier_Hotkey, settings.ini, Hotkey, Modifier_Hotkey, %A_Space%
 
-;Read Program_1
-IniRead, Ini_Hotkey_1, settings.ini, Program_1, Hotkey_1, %A_Space%
-IniRead, Ini_Exe_1, settings.ini, Program_1, Exe_1, %A_Space%
-IniRead, Ini_Path_1, settings.ini, Program_1, Path_1, %A_Space%
 
-;Read Program_2
-IniRead, Ini_Hotkey_1, settings.ini, Program_1, Hotkey_1, %A_Space%
-IniRead, Ini_Exe_1, settings.ini, Program_1, Exe_1, %A_Space%
-IniRead, Ini_Path_1, settings.ini, Program_1, Path_1, %A_Space%
-
-;Read Program_3
-IniRead, Ini_Hotkey_3, settings.ini, Program_3, Hotkey_3, %A_Space%
-IniRead, Ini_Exe_3, settings.ini, Program_3, Exe_3, %A_Space%
-IniRead, Ini_Path_3, settings.ini, Program_3, Path_3, %A_Space%
-
-;Read Program_4
-IniRead, Ini_Hotkey_4, settings.ini, Program_4, Hotkey_4, %A_Space%
-IniRead, Ini_Exe_4, settings.ini, Program_4, Exe_4, %A_Space%
-IniRead, Ini_Path_4, settings.ini, Program_4, Path_4, %A_Space%
-
-;Read Program_5
-IniRead, Ini_Hotkey_5, settings.ini, Program_5, Hotkey_5, %A_Space%
-IniRead, Ini_Exe_5, settings.ini, Program_5, Exe_5, %A_Space%
-IniRead, Ini_Path_5, settings.ini, Program_5, Path_5, %A_Space%
-
-;Read Program_6
-IniRead, Ini_Hotkey_6, settings.ini, Program_6, Hotkey_6, %A_Space%
-IniRead, Ini_Exe_6, settings.ini, Program_6, Exe_6, %A_Space%
-IniRead, Ini_Path_6, settings.ini, Program_6, Path_6, %A_Space%
-
-;Read Program_7
-IniRead, Ini_Hotkey_7, settings.ini, Program_7, Hotkey_7, %A_Space%
-IniRead, Ini_Exe_7, settings.ini, Program_7, Exe_7, %A_Space%
-IniRead, Ini_Path_7, settings.ini, Program_7, Path_7, %A_Space%
-
-;Read Program_8
-IniRead, Ini_Hotkey_8, settings.ini, Program_8, Hotkey_8, %A_Space%
-IniRead, Ini_Exe_8, settings.ini, Program_8, Exe_8, %A_Space%
-IniRead, Ini_Path_8, settings.ini, Program_8, Path_8, %A_Space%
-
-;Formatting Variables to be useful for hotkey
-
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+----------------Formatting Variables to be useful for hotkey----------------
+--IF Hotkeys is blank - Takes Ini_Hotkey_# and assigns F24 to Form_Hotkey_#-
+---------IF Hotkeys is some KEY, assigns this key to Form_Hotkey_#----------
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
 
 ;Modifier Hotkey Check
-If (Ini_Modifier_Hotkey = "") 						;Check for Blank Modifier Hotkey
+If (Ini_Modifier_Hotkey = "") 										;Check for Blank Modifier Hotkey
 {
-	Modifier_Hotkey := "" 							;If Blank = set modif var to blank.
+	Modifier_Hotkey := "" 											;If Blank = set modif var to blank.
 }	
 Else
 {
-	Modifier_Hotkey := Ini_Modifier_Hotkey " & " 	;Otherwise combine value from INI with spaces and "&" sign.
+	Modifier_Hotkey := Ini_Modifier_Hotkey " & " 					;Otherwise combine value from INI with spaces and "&" sign.
 }
+
+;Programs Check
+i := 1																;Counter
+Loop, %N_Of_Programs%												;Loop for "Number of programs"
+	{
+		If (Ini_Hotkey_%i% = "") 										;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
+			{
+				Form_Hotkey_%i% := "F24"
+			}
+		Else 														;Combine Modifier_Hotkey with actual hotkey. If Modif is empty, it will
+			{														;combine as if theres no modifier.
+				Form_Hotkey_%i% := Modifier_Hotkey Ini_Hotkey_%i%
+			}
+		i++															;Increment "i"
+	}
 
 
 
-;Program_1
-If (Ini_Hotkey_1 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_1 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_1 := Modifier_Hotkey Ini_Hotkey_1
-}
 
-;Program_2
-If (Ini_Hotkey_2 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_2 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_2 := Modifier_Hotkey Ini_Hotkey_2
-}
 
-;Program_3
-If (Ini_Hotkey_3 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_3 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_3 := Modifier_Hotkey Ini_Hotkey_3
-}
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+------------------------------Creating Hotkeys -----------------------------
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
 
-;Program_4
-If (Ini_Hotkey_4 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_4 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_4 := Modifier_Hotkey Ini_Hotkey_4
-}
+;Looping to create hotkeys
+i := 1																		;Counter 
+Loop, %N_Of_Programs%
+	{
+		Hotkey, % Form_Hotkey_%i% , Hotkey_%i%
+		i++
+	}
 
-;Program_5
-If (Ini_Hotkey_5 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_5 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_5 := Modifier_Hotkey Ini_Hotkey_5
-}
-
-;Program_6
-If (Ini_Hotkey_6 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_6 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_6 := Modifier_Hotkey Ini_Hotkey_6
-}
-
-;Program_7
-If (Ini_Hotkey_7 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_7 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_7 := Modifier_Hotkey Ini_Hotkey_7
-}
-
-;Program_8
-If (Ini_Hotkey_8 = "") 								;Check for Blank Ini setting. If Blank = Change hotkey to F24(Unusable)
-{
-	Form_Hotkey_8 := "F24"
-}
-Else 												;Combine ModifierHotkey with actual hotkey. If Modif is empty, it will
-{													;cimbine as if theres no modifier.
-Form_Hotkey_8 := Modifier_Hotkey Ini_Hotkey_8
-}
-
- 
-
-;Hotkeys formatted for use
-Hotkey, %Form_Hotkey_1%, Hotkey_1
-Hotkey, %Form_Hotkey_2%, Hotkey_2
-Hotkey, %Form_Hotkey_3%, Hotkey_3
-Hotkey, %Form_Hotkey_4%, Hotkey_4
-Hotkey, %Form_Hotkey_5%, Hotkey_5
-Hotkey, %Form_Hotkey_6%, Hotkey_6
-Hotkey, %Form_Hotkey_7%, Hotkey_7
-Hotkey, %Form_Hotkey_8%, Hotkey_8
 ;Returning Modifier Key to work:
 Hotkey, %Ini_Modifier_Hotkey%, D_Modifier
 Hotkey, ^%Ini_Modifier_Hotkey%, Ctrl_Modifier
 Hotkey, !%Ini_Modifier_Hotkey%, Alt_Modifier
 Hotkey, +%Ini_Modifier_Hotkey%, Shift_Modifier
-Return
 
 
-;Main Hotkey Functions
-;Prog1
+
+
+
+Return 
+----------------------------------------------------------------------------
+--------------------------End of AUTO EXECUTE code--------------------------
+----------------------------------------------------------------------------
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+---------------------------------Hotkey Functions -----------------------------
+;-Manually(Cause i don't know how to create label or functions with variables)--
+-------------------------------------------------------------------------------
+
+;Prog_1
 Hotkey_1:
 	If !WinExist("ahk_exe "Ini_Exe_1) ;Without Percent Sigh
 		{
@@ -179,7 +149,7 @@ Hotkey_1:
 		{
 			WinActivate ahk_exe %Ini_Exe_1%
 		}
-Return
+	Return
 
 ;Prog2
 Hotkey_2:
@@ -191,7 +161,7 @@ Hotkey_2:
 		{
 			WinActivate ahk_exe %Ini_Exe_2%
 		}
-Return
+	Return
 
 ;Prog3
 Hotkey_3:
@@ -203,7 +173,7 @@ Hotkey_3:
 		{
 			WinActivate ahk_exe %Ini_Exe_3%
 		}
-Return
+	Return
 
 ;Prog4
 Hotkey_4:
@@ -215,7 +185,7 @@ Hotkey_4:
 		{
 			WinActivate ahk_exe %Ini_Exe_4%
 		}
-Return
+	Return
 
 ;Prog5
 Hotkey_5:
@@ -265,6 +235,181 @@ Hotkey_8:
 		}
 Return
 
+;Prog8
+Hotkey_9:
+	If !WinExist("ahk_exe "Ini_Exe_9) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_9%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_9%
+		}
+Return
+
+;Prog10
+Hotkey_10:
+	If !WinExist("ahk_exe "Ini_Exe_10) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_10%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_10%
+		}
+Return
+
+;Prog11
+Hotkey_11:
+	If !WinExist("ahk_exe "Ini_Exe_11) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_11%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_11%
+		}
+Return
+
+;Prog12
+Hotkey_12:
+	If !WinExist("ahk_exe "Ini_Exe_12) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_12%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_12%
+		}
+Return
+
+;Prog13
+Hotkey_13:
+	If !WinExist("ahk_exe "Ini_Exe_13) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_13%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_13%
+		}
+Return
+
+;Prog14
+Hotkey_14:
+	If !WinExist("ahk_exe "Ini_Exe_14) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_14%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_14%
+		}
+Return
+
+;Prog15
+Hotkey_15:
+	If !WinExist("ahk_exe "Ini_Exe_15) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_15%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_15%
+		}
+Return
+
+;Prog16
+Hotkey_16:
+	If !WinExist("ahk_exe "Ini_Exe_16) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_16%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_16%
+		}
+Return
+
+;Prog17
+Hotkey_17:
+	If !WinExist("ahk_exe "Ini_Exe_17) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_17%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_17%
+		}
+Return
+
+;Prog18
+Hotkey_18:
+	If !WinExist("ahk_exe "Ini_Exe_18) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_18%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_18%
+		}
+Return
+
+;Prog19
+Hotkey_19:
+	If !WinExist("ahk_exe "Ini_Exe_19) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_19%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_19%
+		}
+Return
+
+;Prog20
+Hotkey_20:
+	If !WinExist("ahk_exe "Ini_Exe_20) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_20%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_20%
+		}
+Return
+
+;Prog21
+Hotkey_21:
+	If !WinExist("ahk_exe "Ini_Exe_21) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_21%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_21%
+		}
+Return
+
+;Prog22
+Hotkey_22:
+	If !WinExist("ahk_exe "Ini_Exe_22) ;Without Percent Sigh
+		{
+			Run, %Ini_Path_22%
+		}
+	Else
+		{
+			WinActivate ahk_exe %Ini_Exe_22%
+		}
+Return
+
+
+
+
+
+
+
+
 
 */
 
@@ -295,6 +440,6 @@ Alt_Modifier:
 
 
 ^Numpad1::Reload
-^Numpad2::MsgBox, %Ini_Modifier_Hotkey%`n%Form_Hotkey_1% `n%Form_hotkey_2%`n%Form_Hotkey_3% `n%Form_Hotkey_4% `n%Form_Hotkey_5% `n%Form_Hotkey_6% `n%Form_Hotkey_7% `n%Form_Hotkey_8%
+^Numpad2::listvars
 ^Numpad3::MsgBox, %Ini_Modifier_Hotkey%
 Return
