@@ -1,518 +1,355 @@
-#SingleInstance, force
+#SingleInstance, Force
+/*
+Opening program:
+	Setting default parameters.
+	Checking if Ini was read.               				DONE
+		If Not: 
+				Read Ini 									DONE
 
-;IniRead, OutputVar, Filename, Section, Key [, Default]
+	Checking if "initialization"							DONE
+		If true: 
+				Build starting GUI 							DONE			
 
+Creating GUI contents:										DONE
+	All input fields:										DONE
+Saving settings:
+	Writing Gui position on close.							DONE
+	Splitting EXE name from path. 							DONE
+	Removing from Ini previously stored settings.			DONE
+	Writing ModHotkey, Hotkey, Exe, Path to Ini 			DONE
+Button functions:
+	All buttons.											DONE
+*/
 
-;Reading Ini Settings File:::-------------------------
-;---
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+------------------------Starting parameters-------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
 
-;Reading Modifier Hotkey From Ini
-IniRead, Ini_Modifier_Hotkey, 	settings.ini, 	Hotkey, 	Modifier_Hotkey, 	%A_Space%
+Ini_File := "settings.ini"
+Gui_Title := "MPSwitcher Config"
 
-;Program 1
-IniRead, Ini_Hotkey_1, 			settings.ini, 	Program_1, 	Hotkey_1, 			%A_Space%
-IniRead, Ini_Exe_1, 			settings.ini, 	Program_1, 	Exe_1, 				%A_Space%
-IniRead, Ini_Path_1, 			settings.ini, 	Program_1, 	Path_1, 			%A_Space%
-;Program 2	
-IniRead, Ini_Hotkey_2, 			settings.ini, 	Program_2, 	Hotkey_2, 			%A_Space%
-IniRead, Ini_Exe_2, 			settings.ini, 	Program_2, 	Exe_2, 				%A_Space%
-IniRead, Ini_Path_2, 			settings.ini, 	Program_2, 	Path_2, 			%A_Space%
-;Program 3	
-IniRead, Ini_Hotkey_3, 			settings.ini, 	Program_3, 	Hotkey_3, 			%A_Space%
-IniRead, Ini_Exe_3, 			settings.ini, 	Program_3, 	Exe_3, 				%A_Space%
-IniRead, Ini_Path_3, 			settings.ini, 	Program_3, 	Path_3, 			%A_Space%
-;Program 4	
-IniRead, Ini_Hotkey_4, 			settings.ini, 	Program_4, 	Hotkey_4, 			%A_Space%
-IniRead, Ini_Exe_4, 			settings.ini, 	Program_4, 	Exe_4, 				%A_Space%
-IniRead, Ini_Path_4, 			settings.ini, 	Program_4, 	Path_4, 			%A_Space%
-;Program 5	
-IniRead, Ini_Hotkey_5, 			settings.ini, 	Program_5, 	Hotkey_5, 			%A_Space%
-IniRead, Ini_Exe_5, 			settings.ini, 	Program_5, 	Exe_5, 				%A_Space%
-IniRead, Ini_Path_5, 			settings.ini, 	Program_5, 	Path_5, 			%A_Space%
-;Program 6	
-IniRead, Ini_Hotkey_6, 			settings.ini, 	Program_6, 	Hotkey_6, 			%A_Space%
-IniRead, Ini_Exe_6, 			settings.ini, 	Program_6, 	Exe_6, 				%A_Space%
-IniRead, Ini_Path_6, 			settings.ini, 	Program_6, 	Path_6, 			%A_Space%
-;Program 8	
-IniRead, Ini_Hotkey_7, 			settings.ini, 	Program_7, 	Hotkey_7, 			%A_Space%
-IniRead, Ini_Exe_7, 			settings.ini, 	Program_7, 	Exe_7, 				%A_Space%
-IniRead, Ini_Path_7, 			settings.ini, 	Program_7, 	Path_7, 			%A_Space%
-;Program 8	
-IniRead, Ini_Hotkey_8, 			settings.ini, 	Program_8, 	Hotkey_8, 			%A_Space%
-IniRead, Ini_Exe_8, 			settings.ini, 	Program_8, 	Exe_8, 				%A_Space%
-IniRead, Ini_Path_8, 			settings.ini, 	Program_8, 	Path_8, 			%A_Space%
-;---
+Gui_Width := 650   
+Gui_Height := 800
+
+Initialization := 1								
+
+Max_Programs := 22								;Maximum number of programs
 
 
-;Layout --
-;Field Sizes:
-Path_Field_Width := 450        ;Size of Locate Program Path edit box
+--------------------------------------------------------------------
+;Checks if ini file was read. So it won't be read every time something updates.
+IfExist, %Ini_File%
+ {
+ 	If (Ini_Was_Read != 1)
+ 	 {
+ 	 	GoSub, Read_Ini
+ 	 }
+ }
+
+;First Start
+If (Initialization==1)
+	{
+		GoSub, Gui_Create
+		Initialization := 0
+		Return
+	}
+
+; END OF SELF RUNNING CODE
+--------------------------------------------------------------------
+Return
 
 
-;ALL GUI FUNCTIONS ---------------------------------------------------------------------
-;----------------------------------------------------------------------------------------
-;----------------------------------------------------------------------------------------
-;----------------------------------------------------------------------------------------
 
-MakeGUI:
+
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+-----------------------Building GUI contents------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+; Creating GUI itself
+Gui_Create:
 {
+;Color of the GUI BG
+Gui, Color, f0f0f0
 
-;Fields contents
-;Program 1
-If (Ini_Modifier_Hotkey = "")
-	Disp_Modifier_Hotkey := Modifier_Hotkey
+
+;Adds control for number of programs. 
+;Variable   - N_of_Programs -   is controller for count of programs.
+Gui, Font, s10 , Segoe ui
+Gui, Add, Text, x389 y10,Number of programs:
+Gui, Add, Edit, Number w45 x+10 y7 gGui_Submit
+Gui, Add, UpDown, vN_of_Programs gGui_Submit Range1-%Max_Programs%, %N_of_Programs%
+Gui, Add, Button, x+5 w65 y5 gCommit_Number Default, OK
+
+;Text 
+Gui, Font, s13, 
+Gui, Add, Text, x10 y6, Specify hotkeys and path to program:
+
+;Modifier
+Gui, Font, s12
+Gui, Add, Hotkey, x10 y+10 w43  vModifier_Hotkey, %Modifier_Hotkey%
+Gui, Font, s13
+Gui, Add, Text, x+5 y42, Modifier Hotkey
+
+;Space Between top and edit fields
+Gui, Font, s2
+Gui, Add, Text, x10 y70, 
+Gui, Font, s10
+
+
+;Creation of Multiple controls.
+i := 1
+Loop %N_of_Programs%
+	
+	{
+		Gui, Add, Text, x10 , Hotkey:
+		Gui, Add, Hotkey, x+5 w40 h22 vHotkey_%i%, % Hotkey_%i%
+
+		Gui, Add, Text, x+5 , Path:
+		Gui, Add, Edit, x+5 w450 h22 vPath_%i%, % Path_%i%
+
+		Gui, Add, Button, x+5 w50 h22 v%i% gOpen_File hwndIcon
+		GuiButtonIcon(Icon, "imageres.dll", 204)
+		i++
+		j++
+	}
+
+i := 1
+
+
+
+
+;Bottom buttons
+;Reset
+Gui, Add, Button, w100 x10 y+20 gReset_Button, Reset
+;Save settings
+Gui, Add, Button, w250 x+170 gSave_Settings_Button, Save Settings
+;Cancel
+Gui, Add, Button, w100 x+10 gCancel_Button, Cancel
+
+
+
+
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+------------------------Creating GUI Window-------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+If (Gui_Pos_X&&Gui_Pos_Y != "") 
+ {
+ 	Gui, Show, x%Gui_Pos_X% y%Gui_Pos_Y% w%Gui_Width% , %Gui_Title%
+ }
 Else
-	Disp_Modifier_Hotkey := Ini_Modifier_Hotkey
-
-If (Ini_Hotkey_1 = "")
-	Disp_Hotkey_1 := Hotkey_1
-Else 
-	Disp_Hotkey_1 := Ini_Hotkey_1
-
-If (Ini_Exe_1 = "")
-	Disp_Exe_1 := Exe_1
-Else 
-	Disp_Exe_1 := Ini_Exe_1
-
-If (Ini_Path_1 = "")
-	Disp_Path_1 := Path_1
-Else 
-	Disp_Path_1 := Ini_Path_1
-
-;Program 2
-If (Ini_Hotkey_2 = "")
-	Disp_Hotkey_2 := Hotkey_2
-Else 
-	Disp_Hotkey_2 := Ini_Hotkey_2
-
-If (Ini_Exe_2 = "")
-	Disp_Exe_2 := Exe_2
-Else 
-	Disp_Exe_2 := Ini_Exe_2
-
-If (Ini_Path_2 = "")
-	Disp_Path_2 := Path_2
-Else 
-	Disp_Path_1 := Ini_Path_1
-
-	;Program 3
-If (Ini_Hotkey_3 = "")
-	Disp_Hotkey_3 := Hotkey_3
-Else 
-	Disp_Hotkey_3 := Ini_Hotkey_3
-
-If (Ini_Exe_3 = "")
-	Disp_Exe_3 := Exe_3
-Else 
-	Disp_Exe_3 := Ini_Exe_3
-
-If (Ini_Path_3 = "")
-	Disp_Path_3 := Path_3
-Else 
-	Disp_Path_3 := Ini_Path_3
-
-	;Program 4
-If (Ini_Hotkey_4 = "")
-	Disp_Hotkey_4 := Hotkey_4
-Else 
-	Disp_Hotkey_4 := Ini_Hotkey_4
-
-If (Ini_Exe_4 = "")
-	Disp_Exe_4 := Exe_4
-Else 
-	Disp_Exe_4 := Ini_Exe_4
-
-If (Ini_Path_4 = "")
-	Disp_Path_4 := Path_4
-Else 
-	Disp_Path_4 := Ini_Path_4
-
-	;Program 5
-If (Ini_Hotkey_5 = "")
-	Disp_Hotkey_5 := Hotkey_5
-Else 
-	Disp_Hotkey_5 := Ini_Hotkey_5
-
-If (Ini_Exe_5 = "")
-	Disp_Exe_5 := Exe_5
-Else 
-	Disp_Exe_5 := Ini_Exe_5
-
-If (Ini_Path_5 = "")
-	Disp_Path_5 := Path_5
-Else 
-	Disp_Path_5 := Ini_Path_5
-
-	;Program 6
-If (Ini_Hotkey_6 = "")
-	Disp_Hotkey_6 := Hotkey_6
-Else 
-	Disp_Hotkey_6 := Ini_Hotkey_6
-
-If (Ini_Exe_6 = "")
-	Disp_Exe_6 := Exe_6
-Else 
-	Disp_Exe_6 := Ini_Exe_6
-
-If (Ini_Path_6 = "")
-	Disp_Path_6 := Path_6
-Else 
-	Disp_Path_6 := Ini_Path_6
-
-	;Program 7
-If (Ini_Hotkey_7 = "")
-	Disp_Hotkey_7 := Hotkey_7
-Else 
-	Disp_Hotkey_7 := Ini_Hotkey_7
-
-If (Ini_Exe_7 = "")
-	Disp_Exe_7 := Exe_7
-Else 
-	Disp_Exe_7 := Ini_Exe_7
-
-If (Ini_Path_7 = "")
-	Disp_Path_7 := Path_7
-Else 
-	Disp_Path_7 := Ini_Path_7
-
-	;Program 8
-If (Ini_Hotkey_8 = "")
-	Disp_Hotkey_8 := Hotkey_8
-Else 
-	Disp_Hotkey_8 := Ini_Hotkey_8
-
-If (Ini_Exe_8 = "")
-	Disp_Exe_8 := Exe_8
-Else 
-	Disp_Exe_8 := Ini_Exe_8
-
-If (Ini_Path_8 = "")
-	Disp_Path_8 := Path_8
-Else 
-	Disp_Path_8 := Ini_Path_8
-
-
-;Top Text
-Gui, Font, s14, ;Size of first text label.
-Gui, Add, Text, x10 y3 , Specify hotkey, name, path and executable of the program:
-Gui, Font, s10 cgray, ;Style for example.
-Gui, Add, Text,y+3 ,For example:`nPath: C:/ProgramFiles/Program/Program.exe   Exe: Program.exe
-
-;Modifier hotkey
-Gui, Font, s13 cblack  															;Font
-Gui, Add, Text, x10 , Custom Modifier hotkey:									;Text
-Gui, Add, Hotkey, x+5 w55 h25 vModifier_Hotkey, %Disp_Modifier_Hotkey%			;Variables for modifier
-Gui, Font, s10 cblack, ;Size of the remaining labels
-
-
-
-
-
-
-
-
-;Edit Fields For Programs
-;--------------------------------------
-
-;---
-;Program 1 Input Fields
-Gui, Add, Text, x10 y+15 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_1, 	%Disp_Hotkey_1%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_1, 	%Disp_Exe_1%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_1%
-Gui, Add, Button, x+5 w45 h25 							g1_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-;Program 2 Input Fields
-Gui, Add, Text, x10 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_2, 	%Disp_Hotkey_2%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_2, 	%Disp_Exe_2%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_2%
-Gui, Add, Button, x+5 w45 h25 							g2_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-;Program 3 Input Fields
-Gui, Add, Text, x10 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_3, 	%Disp_Hotkey_3%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_3, 	%Disp_Exe_3%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_3%
-Gui, Add, Button, x+5 w45 h25 							g3_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-;Program 4 Input Fields
-Gui, Add, Text, x10 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_4, 	%Disp_Hotkey_4%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_4, 	%Disp_Exe_4%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_4%
-Gui, Add, Button, x+5 w45 h25 							g4_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-
-;Program 5 Input Fields
-Gui, Add, Text, x10 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_5, 	%Disp_Hotkey_5%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_5, 	%Disp_Exe_5%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_5%
-Gui, Add, Button, x+5 w45 h25 							g5_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-
-;Program 6 Input Fields
-Gui, Add, Text, x10 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_6, 	%Disp_Hotkey_6%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_6, 	%Disp_Exe_6%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_6%
-Gui, Add, Button, x+5 w45 h25 							g6_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-
-;Program 7 Input Fields
-Gui, Add, Text, x10 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_7, 	%Disp_Hotkey_7%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_7, 	%Disp_Exe_7%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_7%
-Gui, Add, Button, x+5 w45 h25 							g7_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-
-;Program 8 Input Fields
-Gui, Add, Text, x10 , Hotkey:
-Gui, Add, Hotkey, w50  x+10 							vHotkey_8, 	%Disp_Hotkey_8%
-Gui, Add, Text, x+10 , Exe:
-Gui, Add, Edit, w130 x+10 								vExe_8, 	%Disp_Exe_8%
-Gui, Add, Text, x10 y+4, Program path:  													;Text
-Gui, Add, Edit, w%Path_Field_Width%  y+5 ReadOnly	, 	%Disp_Path_8%
-Gui, Add, Button, x+5 w45 h25 							g8_Select_Path hwndIcon
-GuiButtonIcon(Icon, "imageres.dll", 204)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;Main GUI Params
-;Save Settings Button
-;Gui, Add, Button, w100 h30 x10 y720 gButtonOK, OK
-
-Gui, Add, Button, x10 y+20 w60 h30 gReset_Fields, Reset
-Gui, Add, Button, Default x+80 w200 h30 gSaveSettings, Save Settings
-Gui, Add, Button, w150 h30 x+10 gCancelButton, Cancel
-Gui, Show, w517 , Program Switcher Settings
-return
+ {
+ 	Gui, Show, w%Gui_Width% , %Gui_Title%
+ }
 }
+Return
 
 
 
 
 
-
-
-
-
-
-;Functions ------------------------------------------------------------------------------------------------
-
-
-1_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_1
-	Gosub, Refresh_Gui
-	Return
-}
-
-2_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_2
-	Gosub, Refresh_Gui
-	Return
-}
-
-3_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_3
-	Gosub, Refresh_Gui
-	Return
-}
-
-4_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_4
-	Gosub, Refresh_Gui
-	Return
-}
-
-5_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_5
-	Gosub, Refresh_Gui
-	Return
-}
-
-6_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_6
-	Gosub, Refresh_Gui
-	Return
-}
-
-7_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_7
-	Gosub, Refresh_Gui
-	Return
-}
-
-8_Select_Path:
-{
-	;Gui, Submit, NoHide
-	FileSelectFile, Path_8
-	Gosub, Refresh_Gui
-	Return
-}
-
-
-
-
-;Calls
-;
-;
-
-Refresh_Gui:
-	{
-		Gui, Submit, NoHide
-		Gui, Destroy
-		Gosub, MakeGUI
-	}
-	Return 
-
-Reset_Fields:
-	{
-		MsgBox, 292, Reset, Do you really wish to reset all settings?
-		IfMsgBox, Yes
-		{
-			Ini_Modifier_Hotkey := `t
-			
-			Ini_Hotkey_1 := `t
-			Disp_Exe_1 := "`t"
-			Disp_Path_1 := "`t"
-
-			Disp_Hotkey_2 := "`t"
-			Disp_Exe_2 := "`t"
-			Disp_Path_2 := "`t"
-
-			Disp_Hotkey_3 := "`t"
-			Disp_Exe_3 := "`t"
-			Disp_Path_3 := "`t"
-		
-			Disp_Hotkey_4 := "`t"
-			Disp_Exe_4 := "`t"
-			Disp_Path_4 := "`t"
-
-			Disp_Hotkey_5 := "`t"
-			Disp_Exe_5 := "`t"
-			Disp_Path_5 := "`t"
-		
-			Disp_Hotkey_6 := "`t"
-			Disp_Exe_6 := "`t"
-			Disp_Path_6 := "`t"
-		
-			Disp_Hotkey_7 := "`t"
-			Disp_Exe_7 := "`t"
-			Disp_Path_7 := "`t"
-
-			Disp_Hotkey_8 := "`t"
-			Disp_Exe_8 := "`t"
-			Disp_Path_8 := "`t"
-
-			Gosub, Refresh_Gui
-			MsgBox, 64, Reset, All settings has been erased. If you want to save it, press "Save Settings"
-		}
-	
-	Return
-	}
-
-;IniWrite, Value, Filename, Section, Key
-SaveSettings:
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+-------------------------------Labels-------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+;Commits number of programs and creates GUI
+Commit_Number:
+	GoSub, Write_Gui_Position
 	Gui, Submit, NoHide
+	Gui, Destroy
+	GoSub, Gui_Create
+Return
+
+;Opening file browser for selecting path to exe.
+Open_File:
+	k := A_GuiControl
+	FileSelectFile, Path_%k%, , C:\, Select Path, Executables (*.exe)
+	GuiControl, , Path_%k%, % Path_%k%
+Return
+
+;Reload
+Gui_Reload:
+	GoSub, Write_Gui_Position
+	Gui, Destroy
+	GoSub, Gui_Create
+Return
+
+; Submits data in the fields
+Gui_Submit:
+	Gui, Submit, NoHide
+Return
+
+
+
+
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+-------------------Reading And Writing INI file---------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+;Reading INI file for data
+Read_Ini:
+	Gui_Position = Gui_Pos_X,Gui_Pos_Y											; Read INI for data. Firstly for Last Gui Position.
+	Loop, Parse, Gui_Position, `,
+	IniRead, %A_LoopField%, %Ini_File%, Gui, %A_LoopField% , %A_Space%					; Then For other data.
+
+	IniRead, N_of_Programs, %Ini_File%, General, Number_Of_Programs, 1
+	IniRead, Modifier_Hotkey, %Ini_File%, General, Modifier_Hotkey, ; %A_Space%
+
+	l := 1
+	Loop, 30
+		{
+			IniRead, Hotkey_%l%, %Ini_File%, Program_%l%, Hotkey, %A_Space%
+			IniRead, Exe_%l%, %Ini_File%, Program_%l%, Exe, %A_Space%
+			IniRead, Path_%l%, %Ini_File%, Program_%l%, Path, %A_Space%
+			l++
+		}
+
+	Ini_Was_Read := 1
+Return
+
+;Writing last GUI posotion before closing GUI.
+Write_Gui_Position:
+	WinGetPos, Gui_Pos_X, Gui_Pos_Y												; Get XY Position of GUI Window. 
+	Gui_Position = Gui_Pos_X,Gui_Pos_Y											; Store it in Gui_Position for loop parsing
+
+	Loop, Parse, Gui_Position, `,												; Read "Gui_position" for values. comma is a divider.
+	IniWrite, % %A_LoopField%, %Ini_File%, Gui, %A_LoopField%					; Write to INI parsed values. 
+ Return 																		; % in front looks deeper inside variable.
+;																				; Without it if would return "Gui_Pos_X" instead of "345"
+
+;Getting EXE from path
+Split_Exe:
+l := 1 																			;counter
+
+Loop, %N_of_Programs%
+
+	{
+		SplitPath, % Path_%l%, Exe_%l%											;Split filename from path						
+		l++
+	}
+
+Return
+
+;Remove INI setting when resetting or before writing new settings.
+Ini_Remove:
 	
-	IniWrite, %Modifier_Hotkey%, settings.ini, Hotkey, Modifier_Hotkey 		;Write Modifier Hotkey
-	;Program 1
-	IniWrite, %Hotkey_1%, settings.ini, Program_1, Hotkey_1
-	IniWrite, %Exe_1%, settings.ini, Program_1, Exe_1
-	IniWrite, %Path_1%, settings.ini, Program_1, Path_1
-	;Program 2	
-	IniWrite, %Hotkey_2%, settings.ini, Program_2, Hotkey_2
-	IniWrite, %Exe_2%, settings.ini, Program_2, Exe_2
-	IniWrite, %Path_2%, settings.ini, Program_2, Path_2
-	;Program 3
-	IniWrite, %Hotkey_3%, settings.ini, Program_3, Hotkey_3
-	IniWrite, %Exe_3%, settings.ini, Program_3, Exe_3
-	IniWrite, %Path_3%, settings.ini, Program_3, Path_3
-	;Program 4	
-	IniWrite, %Hotkey_4%, settings.ini, Program_4, Hotkey_4
-	IniWrite, %Exe_4%, settings.ini, Program_4, Exe_4
-	IniWrite, %Path_4%, settings.ini, Program_4, Path_4
-	;Program 5
-	IniWrite, %Hotkey_5%, settings.ini, Program_5, Hotkey_5
-	IniWrite, %Exe_5%, settings.ini, Program_5, Exe_5
-	IniWrite, %Path_5%, settings.ini, Program_5, Path_5
-	;Program 6	
-	IniWrite, %Hotkey_6%, settings.ini, Program_6, Hotkey_6
-	IniWrite, %Exe_6%, settings.ini, Program_6, Exe_6
-	IniWrite, %Path_6%, settings.ini, Program_6, Path_6
-	;Program 7
-	IniWrite, %Hotkey_7%, settings.ini, Program_7, Hotkey_7
-	IniWrite, %Exe_7%, settings.ini, Program_7, Exe_7
-	IniWrite, %Path_7%, settings.ini, Program_7, Path_7
-	;Program 8	
-	IniWrite, %Hotkey_8%, settings.ini, Program_8, Hotkey_8
-	IniWrite, %Exe_8%, settings.ini, Program_8, Exe_8
-	IniWrite, %Path_8%, settings.ini, Program_8, Path_8
+	IniDelete, %Ini_File%, General 											;Deletes General section. Number of programs and modifier hotkey
 
-	Sleep, 100
-	MsgBox, 64, Program Switcher,Settings saved
-	Sleep, 100
-	ExitApp
-	Return
+l := 1																		;Counter
+Loop, 22																	;Loop 22(max n of programs) times
 
-CancelButton:
-	ExitApp
-	Return
+	{
+		IniDelete, %Ini_File%, Program_%l%									;Deletes sections 1 to 22
+		l++																	;Counter increase
+	}
+Return
+
+;Writing INI FILE
+Ini_Write:
+	
+	GoSub, Ini_Remove
+
+	IniWrite, %N_of_Programs%, %Ini_File%, General, Number_Of_Programs
+	IniWrite, %Modifier_Hotkey%, %Ini_File%, General, Modifier_Hotkey
+
+	Gosub, Split_Exe
+
+	l := 1
+
+	Loop, %N_of_Programs%
+		{
+			IniWrite, % Hotkey_%l%, %Ini_File%, Program_%l%, Hotkey
+			IniWrite, % Path_%l%, %Ini_File%, Program_%l%, Path
+			IniWrite, % Exe_%l%, %Ini_File%, Program_%l%, Exe
+			l++
+		}
+Return
+
+
+
+
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+-----------------------------Buttons--------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+Reset_Button:
+	MsgBox, 36, Reset, Do you want to reset all settings?
+	IfMsgBox, Yes
+		{
+			GoSub, Ini_Remove
+			MsgBox, Settings has been reset. Restart the program.
+			GoSub, Write_Gui_Position
+			ExitApp
+		}
+Return
+
+Save_Settings_Button:
+	Gui, Submit, NoHide
+	GoSub, Ini_Write
+	MsgBox, Settings successfully saved.
+Return
+
+
+;Cancel button
+Cancel_Button:
+	MsgBox, 36, Cancel, Exit the app?
+		IfMsgBox, Yes
+			{
+				GoSub, Write_Gui_Position
+				ExitApp
+			}
+	Return	
+
+
+--------------------------------------------------------------------
 
 
 ;Closing GUI closes app.
 GuiClose:
+	GoSub, Write_Gui_Position
 	ExitApp
-	Return
+	Return	
+
+--------------------------------------------------------------------
+
+
+
+
+numpad1::
+	{
+		listvars
+		;Listvars
+	}
+Return
+
+Numpad2::
+	{
+		GoSub, Ini_Remove
+		Gui, Submit, Nohide
+		GoSub, Ini_Write
+	}
+Return
+
+
+
+
+
+
 
 ;Adding Icons To Buttons
 GuiButtonIcon(Handle, File, Index := 1, Size := 22, Margin := 6, Align := 4)
