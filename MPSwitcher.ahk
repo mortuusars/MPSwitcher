@@ -32,6 +32,9 @@ Returning Modifier Hotkey to working state.
 ----------------------------------------------------------------------------
 Ini_File := "settings.ini"
 
+;State language switcher
+State := 1                                        
+
 
 ----------------------------------------------------------------------------
 ----------------------------------------------------------------------------
@@ -120,13 +123,62 @@ Hotkey, +%Ini_Modifier_Hotkey%, Shift_Modifier
 
 
 
-
+Sleep, 200
+ToolTip
 
 Return 
 ----------------------------------------------------------------------------
 --------------------------End of AUTO EXECUTE code--------------------------
 ----------------------------------------------------------------------------
 
+;                            LANGUAGE SWITCHER
+----------------------------------------------------------------------------
+;English = Alt+Shift+0      = !+0
+;Russian = Alt+Shift+9      = !+9
+;Ukrainian = Alt+Shift+8    = !+8
+
+;!+0
+
+
+F8 & Space::
+    If (State=1)
+        {
+            SendInput, !+{9} 
+            SoundPlay, Resources/Click_Other.wav
+            ToolTip, Russian
+            SetTimer, Remove_Tooltip, 250
+            State := 2
+            Return
+        }
+    Else {}
+    
+
+    If (State=2)
+        {
+            SendInput, !+{8}                                         ;Ukrainian
+            SoundPlay, Resources/Click_Other.wav                                     
+            ToolTip, Ukrainian
+            SetTimer, Remove_Tooltip, 250
+            State := 3
+            Return
+        }
+    Else {}
+
+    IF (State=3)
+        {
+            SendInput, !+{0}                                        ;English
+            SoundPlay, Resources/Click_English.wav
+            ToolTip, English
+            SetTimer, Remove_Tooltip, 250
+            State := 1
+            Return
+        }
+    Else {}
+    
+
+Remove_Tooltip:
+ToolTip
+Return
 
 
 
